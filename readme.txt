@@ -35,10 +35,12 @@ That's all. No configuration required.
 
 == Screenshots ==
 
+1. Reusable Blocks promoted to the main menu
 1. List of all Reusable Blocks showing number of instances
-2. List of content which uses a particular block
+1. List of content which uses a particular block
 
 == Changelog ==
 
 = 1.0 =
 * First version
+
