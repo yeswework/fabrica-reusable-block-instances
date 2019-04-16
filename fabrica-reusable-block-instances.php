@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Fabrica Reusable Block Instances
-Plugin URI: https://fabri.ca/
+Plugin URI: https://github.com/yeswework/fabrica-reusable-block-instances/
 Description: Shows you how many times, and where, a Reusable Block has been used.
 Version: 0.1.0
 Author: Fabrica
