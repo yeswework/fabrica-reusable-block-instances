@@ -77,11 +77,9 @@ class ReusableBlocks {
 		global $wpdb;
 		$tag = '<!-- wp:block {"ref":' . $ID . '}';
 		$search = '%' . $wpdb->esc_like($tag) . '%';
-		$wpdb->query('SET @csum := 0;');
-		$sql = "SELECT ID, (@count := (LENGTH(post_content) - LENGTH(REPLACE(post_content, %s, ''))) DIV LENGTH(%s)) AS instances, (@csum := @csum + @count) AS total_instances FROM {$wpdb->prefix}posts WHERE post_content LIKE %s and post_status IN ('publish', 'draft', 'future', 'pending')";
+		$sql = "SELECT SUM((LENGTH(post_content) - LENGTH(REPLACE(post_content, %s, ''))) DIV LENGTH(%s)) AS instances FROM {$wpdb->prefix}posts WHERE post_content LIKE %s and post_status IN ('publish', 'draft', 'future', 'pending')";
 		$query = $wpdb->prepare($sql, $tag, $tag, $search);
-		$results = $wpdb->get_results($query, ARRAY_A);
-		$instances = (int) end($results)['total_instances'];
+		$instances = (int) $wpdb->get_var($query);
 		if ($instances > 0) {
 			echo '<a href="' . admin_url('edit.php?post_type=wp_block&block_instances=' . $ID) . '">' . $instances . '</a>';
 		} else {
