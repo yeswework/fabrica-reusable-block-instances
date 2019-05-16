@@ -3,7 +3,7 @@
 Plugin Name: Fabrica Reusable Block Instances
 Plugin URI: https://github.com/yeswework/fabrica-reusable-block-instances/
 Description: Shows you how many times, and where, a Reusable Block has been used.
-Version: 1.0.1
+Version: 1.0.2
 Author: Fabrica
 Author URI: https://fabri.ca/
 Text Domain: fabrica-reusable-block-instances
@@ -60,7 +60,7 @@ class ReusableBlocks {
 	}
 
 	public function modifyPageTitle($safeText, $text) {
-		if ($safeText != __('Reusable Blocks')) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
+		if ($safeText !== __('Reusable Blocks')) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
 		return __('Instances of Reusable Block', self::$textDomain) . ' ‘' . get_the_title($_GET['block_instances']) . '’';
 	}
 
