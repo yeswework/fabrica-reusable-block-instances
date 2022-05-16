@@ -55,7 +55,8 @@ class ReusableBlocks {
 	}
 
 	public function modifyPostsWhere($where) {
-		$where .= ' AND post_content LIKE \'%<!-- wp:block {"ref":' . $_GET['block_instances'] . '}%\' ';
+		global $wpdb;
+		$where .= $wpdb->prepare(' AND post_content LIKE %s ', $this->getBlocksTag($_GET['block_instances']));
 		return $where;
 	}
 
@@ -75,16 +76,22 @@ class ReusableBlocks {
 	public function displayColumn($column, $ID) {
 		if ($column != 'instances') { return; }
 		global $wpdb;
-		$tag = '<!-- wp:block {"ref":' . $ID . '}';
-		$search = '%' . $wpdb->esc_like($tag) . '%';
-		$sql = "SELECT SUM((LENGTH(post_content) - LENGTH(REPLACE(post_content, %s, ''))) DIV LENGTH(%s)) AS instances FROM {$wpdb->prefix}posts WHERE post_content LIKE %s and post_status IN ('publish', 'draft', 'future', 'pending')";
-		$query = $wpdb->prepare($sql, $tag, $tag, $search);
+		$sql = "SELECT COUNT(*) AS instances
+			FROM {$wpdb->posts}
+			WHERE post_content LIKE %s
+				AND post_status IN ('publish', 'draft', 'future', 'pending')";
+		$query = $wpdb->prepare($sql, $this->getBlocksTag($ID));
 		$instances = (int) $wpdb->get_var($query);
 		if ($instances > 0) {
 			echo '<a href="' . admin_url('edit.php?post_type=wp_block&block_instances=' . $ID) . '">' . $instances . '</a>';
 		} else {
 			echo '—';
 		}
+	}
+
+	private function getBlocksTag($ID) {
+		global $wpdb;
+		return "%{$wpdb->esc_like('<!-- wp:block {"ref":' . $ID . '}')}%";
 	}
 }
 
