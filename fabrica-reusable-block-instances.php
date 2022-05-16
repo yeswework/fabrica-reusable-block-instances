@@ -13,6 +13,8 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
 namespace Fabrica\ReusableBlockInstances;
 
+use getID3;
+
 if (!defined('WPINC')) { die(); }
 
 class ReusableBlocks {
@@ -33,9 +35,12 @@ class ReusableBlocks {
 			add_action('pre_get_posts', array($this, 'modifyListQuery'));
 			add_filter('esc_html', array($this, 'modifyPageTitle'), 1000, 2);
 			add_filter('views_edit-wp_block', array($this, 'removeQuickLinks'), 1000, 1);
+			add_filter('manage_wp_block_posts_columns', array($this, 'addPostTypeColumn'));
+			add_action('manage_posts_custom_column' , array($this, 'displayPostTypeColumn'), 1000, 2);
+			add_action('manage_pages_custom_column' , array($this, 'displayPageColumn'), 1000, 2);
 		} else {
-			add_filter('manage_wp_block_posts_columns', array($this, 'addColumns'));
-			add_action('manage_wp_block_posts_custom_column' , array($this, 'displayColumn'), 1000, 2);
+			add_filter('manage_wp_block_posts_columns', array($this, 'addInstancesColumn'));
+			add_action('manage_wp_block_posts_custom_column' , array($this, 'displayInstancesColumn'), 1000, 2);
 		}
 	}
 
@@ -50,6 +55,7 @@ class ReusableBlocks {
 	}
 
 	public function modifyListQuery($query) {
+		if ($query->get('post_type') != 'wp_block') { return; }
 		$query->set('post_type', 'any');
 		add_filter('posts_where', array($this, 'modifyPostsWhere'));
 	}
@@ -69,11 +75,33 @@ class ReusableBlocks {
 		return '';
 	}
 
-	public function addColumns($columns) {
+	/* 'Post type' column */
+
+	public function addPostTypeColumn($columns) {
+		return self::arrayInsertAfter($columns, 'title', array('postType' => __('Post type', self::$textDomain)));
+	}
+
+	public function displayPostTypeColumn($column, $ID) {
+		if ($column != 'postType') { return; }
+		$post = get_post($ID);
+		if (!empty($post)) {
+			echo $post->post_type;
+			return;
+		}
+		echo '—';
+	}
+
+	public function displayPageColumn($column, $ID) {
+		echo 'page';
+	}
+
+	/* 'Instances' column */
+
+	public function addInstancesColumn($columns) {
 		return self::arrayInsertAfter($columns, 'title', array('instances' => __('Instances', self::$textDomain)));
 	}
 
-	public function displayColumn($column, $ID) {
+	public function displayInstancesColumn($column, $ID) {
 		if ($column != 'instances') { return; }
 		global $wpdb;
 		$sql = "SELECT COUNT(*) AS instances
