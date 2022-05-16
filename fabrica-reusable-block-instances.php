@@ -13,8 +13,6 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
 namespace Fabrica\ReusableBlockInstances;
 
-use getID3;
-
 if (!defined('WPINC')) { die(); }
 
 class ReusableBlocks {
@@ -28,23 +26,23 @@ class ReusableBlocks {
 		return array_merge(array_slice($array, 0, $pos), $new, array_slice($array, $pos));
 	}
 
-	public function __construct() {
+	public static function init() {
 		if (!is_admin()) { return; }
-		add_action('registered_post_type', array($this, 'makePublic'), 10, 2);
+		add_action('registered_post_type', [__CLASS__, 'makePublic'], 10, 2);
 		if (isset($_GET, $_GET['block_instances']) && is_numeric($_GET['block_instances'])) {
-			add_action('pre_get_posts', array($this, 'modifyListQuery'));
-			add_filter('esc_html', array($this, 'modifyPageTitle'), 1000, 2);
-			add_filter('views_edit-wp_block', array($this, 'removeQuickLinks'), 1000, 1);
-			add_filter('manage_wp_block_posts_columns', array($this, 'addPostTypeColumn'));
-			add_action('manage_posts_custom_column' , array($this, 'displayPostTypeColumn'), 1000, 2);
-			add_action('manage_pages_custom_column' , array($this, 'displayPageColumn'), 1000, 2);
+			add_action('pre_get_posts', [__CLASS__, 'modifyListQuery']);
+			add_filter('esc_html', [__CLASS__, 'modifyPageTitle'], 1000, 2);
+			add_filter('views_edit-wp_block', [__CLASS__, 'removeQuickLinks'], 1000, 1);
+			add_filter('manage_wp_block_posts_columns', [__CLASS__, 'addPostTypeColumn']);
+			add_action('manage_posts_custom_column' , [__CLASS__, 'displayPostTypeColumn'], 1000, 2);
+			add_action('manage_pages_custom_column' , [__CLASS__, 'displayPageColumn'], 1000, 2);
 		} else {
-			add_filter('manage_wp_block_posts_columns', array($this, 'addInstancesColumn'));
-			add_action('manage_wp_block_posts_custom_column' , array($this, 'displayInstancesColumn'), 1000, 2);
+			add_filter('manage_wp_block_posts_columns', [__CLASS__, 'addInstancesColumn']);
+			add_action('manage_wp_block_posts_custom_column' , [__CLASS__, 'displayInstancesColumn'], 1000, 2);
 		}
 	}
 
-	public function makePublic($type, $args) {
+	public static function makePublic($type, $args) {
 		if ($type != 'wp_block') { return; }
 		$args->show_in_menu = true;
 		$args->_builtin = false;
@@ -54,34 +52,34 @@ class ReusableBlocks {
 		$args->menu_position = 58;
 	}
 
-	public function modifyListQuery($query) {
+	public static function modifyListQuery($query) {
 		if ($query->get('post_type') != 'wp_block') { return; }
 		$query->set('post_type', 'any');
-		add_filter('posts_where', array($this, 'modifyPostsWhere'));
+		add_filter('posts_where', [__CLASS__, 'modifyPostsWhere']);
 	}
 
-	public function modifyPostsWhere($where) {
+	public static function modifyPostsWhere($where) {
 		global $wpdb;
-		$where .= $wpdb->prepare(' AND post_content LIKE %s ', $this->getBlocksTag($_GET['block_instances']));
+		$where .= $wpdb->prepare(' AND post_content LIKE %s ', static::getBlocksTag($_GET['block_instances']));
 		return $where;
 	}
 
-	public function modifyPageTitle($safeText, $text) {
+	public static function modifyPageTitle($safeText, $text) {
 		if ($safeText !== __('Reusable Blocks')) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
 		return __('Instances of Reusable Block', self::$textDomain) . ' ‘' . get_the_title($_GET['block_instances']) . '’';
 	}
 
-	public function removeQuickLinks($views) {
+	public static function removeQuickLinks($views) {
 		return '';
 	}
 
 	/* 'Post type' column */
 
-	public function addPostTypeColumn($columns) {
+	public static function addPostTypeColumn($columns) {
 		return self::arrayInsertAfter($columns, 'title', array('postType' => __('Post type', self::$textDomain)));
 	}
 
-	public function displayPostTypeColumn($column, $ID) {
+	public static function displayPostTypeColumn($column, $ID) {
 		if ($column != 'postType') { return; }
 		$post = get_post($ID);
 		if (!empty($post)) {
@@ -91,24 +89,24 @@ class ReusableBlocks {
 		echo '—';
 	}
 
-	public function displayPageColumn($column, $ID) {
+	public static function displayPageColumn($column, $ID) {
 		echo 'page';
 	}
 
 	/* 'Instances' column */
 
-	public function addInstancesColumn($columns) {
+	public static function addInstancesColumn($columns) {
 		return self::arrayInsertAfter($columns, 'title', array('instances' => __('Instances', self::$textDomain)));
 	}
 
-	public function displayInstancesColumn($column, $ID) {
+	public static function displayInstancesColumn($column, $ID) {
 		if ($column != 'instances') { return; }
 		global $wpdb;
 		$sql = "SELECT COUNT(*) AS instances
 			FROM {$wpdb->posts}
 			WHERE post_content LIKE %s
 				AND post_status IN ('publish', 'draft', 'future', 'pending')";
-		$query = $wpdb->prepare($sql, $this->getBlocksTag($ID));
+		$query = $wpdb->prepare($sql, static::getBlocksTag($ID));
 		$instances = (int) $wpdb->get_var($query);
 		if ($instances > 0) {
 			echo '<a href="' . admin_url('edit.php?post_type=wp_block&block_instances=' . $ID) . '">' . $instances . '</a>';
@@ -117,10 +115,10 @@ class ReusableBlocks {
 		}
 	}
 
-	private function getBlocksTag($ID) {
+	private static function getBlocksTag($ID) {
 		global $wpdb;
 		return "%{$wpdb->esc_like('<!-- wp:block {"ref":' . $ID . '}')}%";
 	}
 }
 
-new ReusableBlocks;
+ReusableBlocks::init();
