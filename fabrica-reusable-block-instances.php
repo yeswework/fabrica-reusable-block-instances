@@ -3,7 +3,7 @@
 Plugin Name: Fabrica Reusable Block Instances
 Plugin URI: https://github.com/yeswework/fabrica-reusable-block-instances/
 Description: Shows you how many times, and where, a Reusable Block has been used.
-Version: 1.0.2
+Version: 1.0.3
 Author: Fabrica
 Author URI: https://fabri.ca/
 Text Domain: fabrica-reusable-block-instances
@@ -76,7 +76,7 @@ class ReusableBlocks {
 	/* 'Post type' column */
 
 	public static function addPostTypeColumn($columns) {
-		return self::arrayInsertAfter($columns, 'title', array('postType' => __('Post type', self::$textDomain)));
+		return self::arrayInsertAfter($columns, 'title', array('postType' => __('Post Type', self::$textDomain)));
 	}
 
 	public static function displayPostTypeColumn($column, $ID) {
