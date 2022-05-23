@@ -42,7 +42,7 @@ That's all. No configuration required.
 == Changelog ==
 
 = 1.0.3 =
-* Performance optimization and post type column
+* Performance optimization and new post type column
 
 = 1.0.2 =
 * Minor bugfixes

@@ -60,7 +60,7 @@ class ReusableBlocks {
 
 	public static function modifyPostsWhere($where) {
 		global $wpdb;
-		$where .= $wpdb->prepare(' AND post_content LIKE %s ', static::getBlocksTag($_GET['block_instances']));
+		$where .= $wpdb->prepare(' AND INSTR(post_content, %s) ',$_GET['block_instances']);
 		return $where;
 	}
 
@@ -102,22 +102,16 @@ class ReusableBlocks {
 	public static function displayInstancesColumn($column, $ID) {
 		if ($column != 'instances') { return; }
 		global $wpdb;
-		$sql = "SELECT COUNT(*) AS instances
+		$query = $wpdb->prepare("SELECT COUNT(*) AS instances
 			FROM {$wpdb->posts}
-			WHERE post_content LIKE %s
-				AND post_status IN ('publish', 'draft', 'future', 'pending')";
-		$query = $wpdb->prepare($sql, static::getBlocksTag($ID));
+			WHERE INSTR(post_content, %s)
+				AND post_status IN ('publish', 'draft', 'future', 'pending')", $ID);
 		$instances = (int) $wpdb->get_var($query);
 		if ($instances > 0) {
 			echo '<a href="' . admin_url('edit.php?post_type=wp_block&block_instances=' . $ID) . '">' . $instances . '</a>';
 		} else {
 			echo '—';
 		}
-	}
-
-	private static function getBlocksTag($ID) {
-		global $wpdb;
-		return "%{$wpdb->esc_like('<!-- wp:block {"ref":' . $ID . '}')}%";
 	}
 }
 
