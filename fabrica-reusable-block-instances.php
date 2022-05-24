@@ -29,6 +29,8 @@ class ReusableBlocks {
 	public static function init() {
 		if (!is_admin()) { return; }
 		add_action('registered_post_type', [__CLASS__, 'makePublic'], 10, 2);
+		add_action('admin_menu', [__CLASS__, 'addPostTypesSubmenus']);
+		add_filter('parent_file', [__CLASS__, 'highlightPostTypeSubmenu']);
 		if (isset($_GET, $_GET['block_instances']) && is_numeric($_GET['block_instances'])) {
 			add_action('pre_get_posts', [__CLASS__, 'modifyListQuery']);
 			add_filter('esc_html', [__CLASS__, 'modifyPageTitle'], 1000, 2);
@@ -52,6 +54,28 @@ class ReusableBlocks {
 		$args->menu_position = 58;
 	}
 
+	public static function addPostTypesSubmenus() {
+		$postTypes = self::getPostTypes(true);
+		foreach ($postTypes as $postType) {
+			add_submenu_page(
+				'edit.php?post_type=wp_block',
+				null,
+				get_post_type_object($postType)->labels->name,
+				get_post_type_object('wp_block')->cap->edit_posts,
+				"edit.php?post_type=wp_block&block_post_type={$postType}"
+			);
+		}
+	}
+
+	public static function highlightPostTypeSubmenu($file) {
+		global $submenu_file;
+		if (!empty($_GET['block_post_type'])) {
+			$submenu_file = "edit.php?post_type=wp_block&block_post_type={$_GET['block_post_type']}";
+		}
+
+		return $file;
+	}
+
 	public static function modifyListQuery($query) {
 		if ($query->get('post_type') != 'wp_block') { return; }
 		$query->set('post_type', 'any');
@@ -60,7 +84,8 @@ class ReusableBlocks {
 
 	public static function modifyPostsWhere($where) {
 		global $wpdb;
-		$where .= $wpdb->prepare(' AND INSTR(post_content, %s) ',$_GET['block_instances']);
+		$where .= $wpdb->prepare(" AND post_type IN " . self::getPostTypesString()
+			. " AND INSTR(post_content, %s) ", $_GET['block_instances']);
 		return $where;
 	}
 
@@ -105,13 +130,33 @@ class ReusableBlocks {
 		$query = $wpdb->prepare("SELECT COUNT(*) AS instances
 			FROM {$wpdb->posts}
 			WHERE INSTR(post_content, %s)
-				AND post_status IN ('publish', 'draft', 'future', 'pending')", $ID);
+				AND post_type IN " . self::getPostTypesString()
+				. " AND post_status IN ('publish', 'draft', 'future', 'pending')", $ID);
 		$instances = (int) $wpdb->get_var($query);
 		if ($instances > 0) {
 			echo '<a href="' . admin_url('edit.php?post_type=wp_block&block_instances=' . $ID) . '">' . $instances . '</a>';
 		} else {
 			echo '—';
 		}
+	}
+
+	private static function getPostTypes($all = false) {
+		if (!$all && $_GET['block_post_type']) {
+			return [$_GET['block_post_type']]; // Post type selected
+		}
+
+		// Fetch public post types and filter them through user's whitelist
+		$postTypes = array_filter(
+			get_post_types(['public' => true]),
+			function($postType) {
+				return $postType != 'attachment' && apply_filters('fbi_post_types_whitelist', $postType);
+			}
+		);
+		return array_keys($postTypes);
+	}
+
+	private static function getPostTypesString() {
+		return "('" . implode("', '", self::getPostTypes()) . "')";
 	}
 }
 
