@@ -29,8 +29,7 @@ class ReusableBlocks {
 	public static function init() {
 		if (!is_admin()) { return; }
 		add_action('registered_post_type', [__CLASS__, 'makePublic'], 10, 2);
-		add_action('admin_menu', [__CLASS__, 'addPostTypesSubmenus']);
-		add_filter('parent_file', [__CLASS__, 'highlightPostTypeSubmenu']);
+		add_action('restrict_manage_posts', [__CLASS__, 'addPostTypesFilter']);
 		if (isset($_GET, $_GET['block_instances']) && is_numeric($_GET['block_instances'])) {
 			add_action('pre_get_posts', [__CLASS__, 'modifyListQuery']);
 			add_filter('esc_html', [__CLASS__, 'modifyPageTitle'], 1000, 2);
@@ -48,32 +47,22 @@ class ReusableBlocks {
 		if ($type != 'wp_block') { return; }
 		$args->show_in_menu = true;
 		$args->_builtin = false;
-		$args->labels->name = __('Reusable Blocks');
-		$args->labels->menu_name = __('Reusable Blocks');
+		$args->labels->name = __('Reusable Blocks', self::$textDomain);
+		$args->labels->menu_name = __('Reusable Blocks', self::$textDomain);
 		$args->menu_icon = 'dashicons-screenoptions';
 		$args->menu_position = 58;
 	}
 
-	public static function addPostTypesSubmenus() {
-		$postTypes = self::getPostTypes(true);
-		foreach ($postTypes as $postType) {
-			add_submenu_page(
-				'edit.php?post_type=wp_block',
-				null,
-				get_post_type_object($postType)->labels->name,
-				get_post_type_object('wp_block')->cap->edit_posts,
-				"edit.php?post_type=wp_block&block_post_type={$postType}"
-			);
-		}
-	}
-
-	public static function highlightPostTypeSubmenu($file) {
-		global $submenu_file;
-		if (!empty($_GET['block_post_type'])) {
-			$submenu_file = "edit.php?post_type=wp_block&block_post_type={$_GET['block_post_type']}";
-		}
-
-		return $file;
+	public static function addPostTypesFilter($type) {
+		if ($type != 'wp_block') { return; }
+		$filteredPostType = empty($_GET['block_post_type']) ? 'all' : $_GET['block_post_type'];
+		$postTypes = self::getPostTypes(true); ?>
+		<select name="block_post_type" id="block_post_type">
+			<option value="all" <?php selected('all', $filteredPostType); ?>><?= __('All post types', self::$textDomain); ?></option><?php
+			foreach ($postTypes as $postType) { ?>
+				<option value="<?= esc_attr($postType); ?>" <?php selected($postType, $filteredPostType); ?>><?= esc_attr(get_post_type_object($postType)->labels->name); ?></option><?php
+			} ?>
+		</select><?php
 	}
 
 	public static function modifyListQuery($query) {
@@ -90,7 +79,7 @@ class ReusableBlocks {
 	}
 
 	public static function modifyPageTitle($safeText, $text) {
-		if ($safeText !== __('Reusable Blocks')) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
+		if ($safeText !== __('Reusable Blocks', self::$textDomain)) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
 		return __('Instances of Reusable Block', self::$textDomain) . ' ‘' . get_the_title($_GET['block_instances']) . '’';
 	}
 
