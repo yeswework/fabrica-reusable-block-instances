@@ -41,6 +41,10 @@ That's all. No configuration required.
 
 == Changelog ==
 
+= 1.0.4 =
+* Further query performance optimizations
+* Filter by post type
+
 = 1.0.3 =
 * Performance optimization and new post type column
 
