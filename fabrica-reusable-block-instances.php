@@ -3,7 +3,7 @@
 Plugin Name: Fabrica Reusable Block Instances
 Plugin URI: https://github.com/yeswework/fabrica-reusable-block-instances/
 Description: Shows you how many times, and where, a Reusable Block has been used.
-Version: 1.0.4
+Version: 1.0.5
 Author: Fabrica
 Author URI: https://fabri.ca/
 Text Domain: fabrica-reusable-block-instances
@@ -73,8 +73,8 @@ class ReusableBlocks {
 
 	public static function modifyPostsWhere($where) {
 		global $wpdb;
-		$where .= $wpdb->prepare(" AND post_type IN " . self::getPostTypesString()
-			. " AND INSTR(post_content, %s) ", $_GET['block_instances']);
+		$where .= $wpdb->prepare(" AND post_type IN " . self::getPostTypesPlaceholder()
+			. " AND INSTR(post_content, '{\"ref\":%d}') ", ...array_merge(self::getPostTypes(), [$_GET['block_instances']]));
 		return $where;
 	}
 
@@ -118,9 +118,9 @@ class ReusableBlocks {
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT COUNT(*) AS instances
 			FROM {$wpdb->posts}
-			WHERE INSTR(post_content, %s)
-				AND post_type IN " . self::getPostTypesString()
-				. " AND post_status IN ('publish', 'draft', 'future', 'pending')", $ID);
+			WHERE INSTR(post_content, '{\"ref\":%d}')
+				AND post_type IN " . self::getPostTypesPlaceholder()
+				. " AND post_status IN ('publish', 'draft', 'future', 'pending')", $ID, ...self::getPostTypes());
 		$instances = (int) $wpdb->get_var($query);
 		if ($instances > 0) {
 			echo '<a href="' . admin_url('edit.php?post_type=wp_block&block_instances=' . $ID) . '">' . $instances . '</a>';
@@ -130,7 +130,7 @@ class ReusableBlocks {
 	}
 
 	private static function getPostTypes($all = false) {
-		if (!$all && $_GET['block_post_type']) {
+		if (!$all && !empty($_GET['block_post_type'])) {
 			return [$_GET['block_post_type']]; // Post type selected
 		}
 
@@ -144,8 +144,8 @@ class ReusableBlocks {
 		return array_keys($postTypes);
 	}
 
-	private static function getPostTypesString() {
-		return "('" . implode("', '", self::getPostTypes()) . "')";
+	private static function getPostTypesPlaceholder() {
+		return "(" . implode(', ', array_fill(0, count(self::getPostTypes()), '%s')) . ")";
 	}
 }
 

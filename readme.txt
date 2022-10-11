@@ -4,7 +4,7 @@ Donate link: https://fabri.ca/donate/
 Tags: blocks, block, reusable, reusable, gutenberg, blockeditor, content
 Requires at least: 5.0
 Tested up to: 6.0
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 Requires PHP: 5.6
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -15,7 +15,7 @@ Shows you how many times, and where, a Reusable Block has been used.
 
 Provides some vital functionality missing from WP 5.X Core for users of Reusable Blocks:
 
-* Shows how many times each Reusable Block has been used throughout the whole site (correctly counts multiple instances within posts)
+* Shows how many times each Reusable Block has been used throughout the whole site
 * This count links to a list of all the content which uses the block (Posts, Pages and Custom Post Types)
 
 If you are making changes to Reusable Blocks and need to keep an eye on where those changes will be seen, this plugin is for you.
