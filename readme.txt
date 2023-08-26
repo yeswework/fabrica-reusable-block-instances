@@ -1,9 +1,9 @@
 === Fabrica Reusable Block Instances ===
 Contributors: yeswework
 Donate link: https://fabri.ca/donate/
-Tags: blocks, block, reusable, reusable, gutenberg, blockeditor, content
+Tags: blocks, block, reusable, gutenberg, blockeditor, content
 Requires at least: 5.0
-Tested up to: 6.0
+Tested up to: 6.3
 Stable tag: 1.0.5
 Requires PHP: 5.6
 License: GPL-2.0+
