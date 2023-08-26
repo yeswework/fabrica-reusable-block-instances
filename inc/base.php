@@ -55,7 +55,10 @@ class Base {
 		wp_enqueue_script(Base::NS . '-script', $url , [], filemtime($path), true);
 		wp_localize_script(Base::NS . '-script', 'app', [
 			'ns' => Base::NS,
-			'url' => admin_url('admin-ajax.php'),
+			'url' => [
+				'ajax' => admin_url('admin-ajax.php'),
+				'edit' => admin_url('edit.php'),
+			],
 		]);
 	}
 

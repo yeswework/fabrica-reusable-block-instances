@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		body.append('block_id', blockId);
 		$cell.innerHTML = '<span class="spinner is-active" style="float:none;margin-top:0"></span>loading...';
 
-		fetch(`${app.url}?action=${app.ns}_get_block_instances`, {method: 'POST', credentials: 'include', body})
+		fetch(`${app.url.ajax}?action=${app.ns}_get_block_instances`, {method: 'POST', credentials: 'include', body})
 		.then(response => response.json())
 		.then(result => {
 			console.log('~~>', {result}); // ~~
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			$cell.innerText = '—';
 			if (result.data.instances > 0) {
-				$cell.innerHTML = `<a href="${app.url}/edit.php?post_type=wp_block&block_instances=${blockId}">${result.data.instances}</a>`;
+				$cell.innerHTML = `<a href="${app.url.edit}?post_type=wp_block&block_instances=${blockId}">${result.data.instances}</a>`;
 			}
 			// ~~ #TODO: finishFetch('Error getting export status. Please check if export file is available or try again. ' + (status?.message || ''));
 		}).catch(reason => {
