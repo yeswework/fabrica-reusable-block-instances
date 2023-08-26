@@ -59,6 +59,7 @@ class Base {
 				'ajax' => admin_url('admin-ajax.php'),
 				'edit' => admin_url('edit.php'),
 			],
+			'nonce' => wp_create_nonce(self::NS),
 		]);
 	}
 
@@ -148,6 +149,13 @@ class Base {
 	}
 
 	public static function getBlockInstance() {
+		if (!wp_verify_nonce($_POST['_wpnonce'] ?? '', self::NS)) {
+			wp_send_json_error(['message' => 'invalid nonce'], 500);
+		}
+		if (empty($_POST['block_id'])) {
+			wp_send_json_error(['message' => 'missing block id'], 500);
+		}
+
 		$id = $_POST['block_id'];
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT COUNT(*) AS instances

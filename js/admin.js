@@ -3,11 +3,31 @@ document.addEventListener('DOMContentLoaded', () => {
 	const $waitingCells = document.querySelectorAll(`.${app.ns}-instances--waiting`);
 	if (!$waitingCells || !$waitingCells.length) { return; }
 
-	for (const $cell of $waitingCells) {
+
+	const renderError = $cell => {
+		const $errorWarning = document.createElement('strong'),
+			$retryLink = document.createElement('a');
+		$errorWarning.classList.add('dashicons-before', 'dashicons-warning');
+		$errorWarning.innerText = ' error';
+		$retryLink.innerText = 'retry';
+		$retryLink.style.marginLeft = '.5rem';
+		$retryLink.addEventListener('click', () => loadCell($cell));
+		$cell.replaceChildren($errorWarning, document.createElement('br'), $retryLink);
+	};
+
+	const loadNextCell = () => {
+		// load next 'waiting' cell
+		const $waitingCell = document.querySelector(`.${app.ns}-instances--waiting`);
+		if (!$waitingCell) { return; }
+		loadCell($waitingCell);
+	};
+
+	const loadCell = $cell => {
 		const blockId = $cell.dataset.blockId,
 			postType = document.getElementById('block_post_type')?.value,
 			body = new FormData();
-		// ~~ #TODO: body.append('_wpnonce', document.getElementById('_wpnonce')?.value);
+		$cell.classList.remove(`${app.ns}-instances--waiting`);
+		body.append('_wpnonce', app.nonce);
 		body.append('block_post_type', postType == 'all' ? '' : postType);
 		body.append('block_id', blockId);
 		$cell.innerHTML = '<span class="spinner is-active" style="float:none;margin-top:0"></span>loading...';
@@ -15,19 +35,24 @@ document.addEventListener('DOMContentLoaded', () => {
 		fetch(`${app.url.ajax}?action=${app.ns}_get_block_instances`, {method: 'POST', credentials: 'include', body})
 		.then(response => response.json())
 		.then(result => {
-			console.log('~~>', {result}); // ~~
-			if (!result.success) { // ~~ #TODO
-				$cell.innerText = 'error';
-				return;
-			}
-			$cell.innerText = '—';
-			if (result.data.instances > 0) {
+			if (result.success && result.data.instances > 0) {
 				$cell.innerHTML = `<a href="${app.url.edit}?post_type=wp_block&block_instances=${blockId}">${result.data.instances}</a>`;
+			} else if (result.success) {
+				$cell.innerText = '—';
+			} else {
+				renderError($cell);
 			}
-			// ~~ #TODO: finishFetch('Error getting export status. Please check if export file is available or try again. ' + (status?.message || ''));
+
+			loadNextCell();
 		}).catch(reason => {
 			console.log('~~> error:', {reason}); // ~~
-			// ~~ #TODO: replace loading spinner and allow re-try: finishFetch('Error while exporting or getting export status.');
+			renderError($cell);
 		});
+	};
+
+	let i = 0;
+	for (const $cell of $waitingCells) {
+		if (++i > 3) { return; } // load only 3 cells at a time
+		loadCell($cell);
 	}
 });
