@@ -7,12 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	const renderError = $cell => {
 		const $errorWarning = document.createElement('strong'),
 			$retryLink = document.createElement('a');
+
 		$errorWarning.classList.add('dashicons-before', 'dashicons-warning');
 		$errorWarning.innerText = ' error';
 		$retryLink.innerText = 'retry';
-		$retryLink.style.marginLeft = '.5rem';
+		$retryLink.classList.add(`${app.ns}-instances__retry-link`)
 		$retryLink.addEventListener('click', () => loadCell($cell));
-		$cell.replaceChildren($errorWarning, document.createElement('br'), $retryLink);
+		$cell.classList.add(`${app.ns}-instances--error`);
+		$cell.replaceChildren($errorWarning, $retryLink);
 	};
 
 	const loadNextCell = () => {
@@ -30,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		body.append('_wpnonce', app.nonce);
 		body.append('block_post_type', postType == 'all' ? '' : postType);
 		body.append('block_id', blockId);
-		$cell.innerHTML = '<span class="spinner is-active" style="float:none;margin-top:0"></span>loading...';
+		$cell.innerHTML = `<span class="${app.ns}-instances__spinner spinner is-active"></span>loading...`;
 
 		fetch(`${app.url.ajax}?action=${app.ns}_get_block_instances`, {method: 'POST', credentials: 'include', body})
 		.then(response => response.json())

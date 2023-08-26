@@ -47,6 +47,14 @@ class Base {
 	}
 
 	public static function enqueueAssets() {
+		// style
+		$base = 'css/admin.css';
+		$path = path_join(plugin_dir_path(__DIR__), $base);
+		$url = plugins_url($base, __DIR__);
+		if (file_exists($path)) {
+			wp_enqueue_style(Base::NS . '-style', $url , [], filemtime($path));
+		}
+
 		// script
 		$base = 'js/admin.js';
 		$path = path_join(plugin_dir_path(__DIR__), $base);
@@ -126,7 +134,7 @@ class Base {
 	public static function displayInstancesColumn($column, $id) {
 		if ($column != 'instances') { return; } ?>
 
-		<span class="<?= self::NS ?>-instances <?= self::NS ?>-instances--waiting" data-block-id="<?= $id ?>" style="display:flex">waiting to load...</span><?php
+		<span class="<?= self::NS ?>-instances <?= self::NS ?>-instances--waiting" data-block-id="<?= $id ?>">waiting to load...</span><?php
 	}
 
 	private static function getPostTypes($all = false) {

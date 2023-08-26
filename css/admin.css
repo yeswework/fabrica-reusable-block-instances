@@ -1,0 +1,16 @@
+.fabrica-reusable-block-instances-instances {
+	display: flex;
+}
+
+.fabrica-reusable-block-instances-instances--error {
+	flex-direction: column;
+}
+
+.fabrica-reusable-block-instances-instances__retry-link {
+	cursor: pointer;
+}
+
+.fabrica-reusable-block-instances-instances__spinner {
+	float: none;
+	margin-top: 0;
+}
