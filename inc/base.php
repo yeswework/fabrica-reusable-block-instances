@@ -131,10 +131,16 @@ class Base {
 		return self::arrayInsertAfter($columns, 'title', array('instances' => __('Instances', self::NS)));
 	}
 
-	public static function displayInstancesColumn($column, $id) {
-		if ($column != 'instances') { return; } ?>
+	private static function getInstancesRef($id) {
+		return self::NS . '_block-' . $id;
+	}
 
-		<span class="<?= self::NS ?>-instances <?= self::NS ?>-instances--waiting" data-block-id="<?= $id ?>">waiting to load...</span><?php
+	public static function displayInstancesColumn($column, $id) {
+		if ($column != 'instances') { return; }
+		$instances = get_transient(self::getInstancesRef($id));
+		if ($instances == 0) { $instances = '—'; } ?>
+
+		<span class="<?= self::NS ?>-instances <?= empty($instances) ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?= empty($instances) ? 'waiting to load...' : $instances ?></span><?php
 	}
 
 	private static function getPostTypes($all = false) {
@@ -164,7 +170,15 @@ class Base {
 			wp_send_json_error(['message' => 'missing block id'], 500);
 		}
 
+		// check if instances for this reusable block are cached
 		$id = $_POST['block_id'];
+		$transientRef = self::getInstancesRef($id);
+		$instances = get_transient($transientRef);
+		if (!empty($instances)) {
+			wp_send_json_success(['instances' => $instances]);
+		}
+
+		// not cached: get number of reusable block instances from DB
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT COUNT(*) AS instances
 			FROM {$wpdb->posts}
@@ -174,8 +188,10 @@ class Base {
 			$id,
 			...self::getPostTypes()
 		);
+		$instances = (int) $wpdb->get_var($query);
+		set_transient($transientRef, $instances, 15 * MINUTE_IN_SECONDS);
 
-		wp_send_json_success(['instances' => (int) $wpdb->get_var($query)]);
+		wp_send_json_success(['instances' => $instances]);
 	}
 }
 
