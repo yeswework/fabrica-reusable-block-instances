@@ -139,10 +139,17 @@ class Base {
 
 	public static function displayInstancesColumn($column, $id) {
 		if ($column != 'instances') { return; }
-		$instances = get_transient(self::getInstancesRef($id));
-		if ($instances === "0") { $instances = '—'; } ?>
+		$instances = get_transient(self::getInstancesRef($id)); ?>
 
-		<span class="<?= self::NS ?>-instances <?= empty($instances) ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?= empty($instances) ? 'waiting to load...' : $instances ?></span><?php
+		<span class="<?= self::NS ?>-instances <?= empty($instances) && $instances !== "0" ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?php
+			if ($instances === "0") {
+				echo '—';
+			} else if (empty($instances)) {
+				echo 'waiting to load...';
+			} else { ?>
+				<a href="<?= admin_url('edit.php?post_type=wp_block&block_instances=' . $id) ?>"><?= $instances ?></a><?php
+			} ?>
+		</span><?php
 	}
 
 	private static function getPostTypes($all = false) {
