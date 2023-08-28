@@ -138,7 +138,7 @@ class Base {
 	public static function displayInstancesColumn($column, $id) {
 		if ($column != 'instances') { return; }
 		$instances = get_transient(self::getInstancesRef($id));
-		if ($instances == 0) { $instances = '—'; } ?>
+		if ($instances === "0") { $instances = '—'; } ?>
 
 		<span class="<?= self::NS ?>-instances <?= empty($instances) ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?= empty($instances) ? 'waiting to load...' : $instances ?></span><?php
 	}
@@ -162,6 +162,8 @@ class Base {
 		return "(" . implode(', ', array_fill(0, count(self::getPostTypes()), '%s')) . ")";
 	}
 
+	/* Asynchronous data loading and caching */
+
 	public static function getBlockInstance() {
 		if (!wp_verify_nonce($_POST['_wpnonce'] ?? '', self::NS)) {
 			wp_send_json_error(['message' => 'invalid nonce'], 500);
@@ -182,13 +184,13 @@ class Base {
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT COUNT(*) AS instances
 			FROM {$wpdb->posts}
-			WHERE INSTR(post_content, '{\"ref\":%d}')
+			WHERE INSTR(post_content, '{\"ref\":%d} /-->')
 				AND post_type IN " . self::getPostTypesPlaceholder()
 				. " AND post_status IN ('publish', 'draft', 'future', 'pending')",
 			$id,
 			...self::getPostTypes()
 		);
-		$instances = (int) $wpdb->get_var($query);
+		$instances = $wpdb->get_var($query);
 		set_transient($transientRef, $instances, 15 * MINUTE_IN_SECONDS);
 
 		wp_send_json_success(['instances' => $instances]);
