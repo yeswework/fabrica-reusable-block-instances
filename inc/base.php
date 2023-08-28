@@ -8,6 +8,7 @@ if (!defined('WPINC')) { die(); }
 
 class Base {
 	public const NS = 'fabrica-reusable-block-instances';
+	public const CACHE_PERIOD = 7 * DAY_IN_SECONDS;
 
 	// Insert element into array after given key, from https://gist.github.com/wpscholar/0deadce1bbfa4adb4e4c
 	public static function arrayInsertAfter(array $array, $key, array $new) {
@@ -18,6 +19,7 @@ class Base {
 	}
 
 	public static function init() {
+		add_action('post_updated', [__CLASS__, 'handlePostUpdate'], 10, 3);
 		if (!is_admin()) { return; }
 		add_action('registered_post_type', [__CLASS__, 'makePublic'], 10, 2);
 		add_action('admin_enqueue_scripts', [__CLASS__, 'enqueueAssets']);
@@ -164,6 +166,21 @@ class Base {
 
 	/* Asynchronous data loading and caching */
 
+	public static function handlePostUpdate($postId, $newPost, $oldPost) {
+		$oldIds = [];
+		preg_match_all('%{"ref":(\d+)} /-->%', $oldPost->post_content, $oldIds);
+		$oldIds = array_unique($oldIds[1] ?? []);
+		$newIds = [];
+		preg_match_all('%{"ref":(\d+)} /-->%', $newPost->post_content, $newIds);
+		$newIds = array_unique($newIds[1] ?? []);
+		$changedIds = array_merge(array_diff($oldIds, $newIds), array_diff($newIds, $oldIds));
+
+		// delete cached results for every reusable block that is new or has been completely removed from the post
+		foreach ($changedIds as $id) {
+			delete_transient(self::getInstancesRef($id));
+		}
+	}
+
 	public static function getBlockInstance() {
 		if (!wp_verify_nonce($_POST['_wpnonce'] ?? '', self::NS)) {
 			wp_send_json_error(['message' => 'invalid nonce'], 500);
@@ -191,7 +208,7 @@ class Base {
 			...self::getPostTypes()
 		);
 		$instances = $wpdb->get_var($query);
-		set_transient($transientRef, $instances, 15 * MINUTE_IN_SECONDS);
+		set_transient($transientRef, $instances, self::CACHE_PERIOD);
 
 		wp_send_json_success(['instances' => $instances]);
 	}
