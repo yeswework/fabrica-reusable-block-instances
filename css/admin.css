@@ -3,7 +3,7 @@
 }
 
 .fabrica-reusable-block-instances-instances--error {
-	flex-direction: column;
+	gap: .5ch;
 }
 
 .fabrica-reusable-block-instances-instances__retry-link {

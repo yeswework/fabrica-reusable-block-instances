@@ -4,12 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (!$waitingCells || !$waitingCells.length) { return; }
 
 
-	const renderError = $cell => {
+	const handleError = ($cell, attempt) => {
+		// try 3 times before failing
+		if (attempt < 2) {
+			loadCell($cell, attempt + 1);
+			return;
+		}
+
+		// surpassed max number of attempts: show error
 		const $errorWarning = document.createElement('strong'),
 			$retryLink = document.createElement('a');
 
 		$errorWarning.classList.add('dashicons-before', 'dashicons-warning');
-		$errorWarning.innerText = ' error';
 		$retryLink.innerText = 'retry';
 		$retryLink.classList.add(`${app.ns}-instances__retry-link`)
 		$retryLink.addEventListener('click', () => loadCell($cell));
@@ -24,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		loadCell($waitingCell);
 	};
 
-	const loadCell = $cell => {
+	const loadCell = ($cell, attempt=0) => {
 		const blockId = $cell.dataset.blockId,
 			postType = document.getElementById('block_post_type')?.value,
 			body = new FormData();
@@ -42,13 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			} else if (result.success) {
 				$cell.innerText = '—';
 			} else {
-				renderError($cell);
+				handleError($cell, attempt);
 			}
 
 			loadNextCell();
 		}).catch(reason => {
 			console.log('~~> error:', {reason}); // ~~
-			renderError($cell);
+			handleError($cell, attempt);
 		});
 	};
 
