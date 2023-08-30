@@ -159,8 +159,8 @@ class Base {
 		<span class="<?= self::NS ?>-instances <?= empty($instances) && $instances !== "0" ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?php
 			if ($instances === "0") {
 				echo '—';
-			} else if (empty($instances)) {
-				echo 'waiting to load...';
+			} else if (empty($instances)) { ?>
+				<span class="dashicons-before dashicons-clock"></span><?php
 			} else { ?>
 				<a href="<?= admin_url('edit.php?post_type=wp_block&block_instances=' . $id) ?>"><?= $instances ?></a><?php
 			} ?>

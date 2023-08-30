@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		body.append('_wpnonce', app.nonce);
 		body.append('block_post_type', postType == 'all' ? '' : postType);
 		body.append('block_id', blockId);
-		$cell.innerHTML = `<span class="${app.ns}-instances__spinner spinner is-active"></span>loading...`;
+		$cell.innerHTML = `<span class="${app.ns}-instances__spinner dashicons-before dashicons-update"></span>`;
 
 		fetch(`${app.url.ajax}?action=${app.ns}_get_block_instances`, {method: 'POST', credentials: 'include', body})
 		.then(response => response.json())
