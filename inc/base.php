@@ -38,6 +38,21 @@ class Base {
 		}
 	}
 
+	public static function handlePluginDeactivation() {
+		# get all plugin's block instances transients
+		global $wpdb;
+		$transients = $wpdb->get_col("SELECT option_name
+			FROM {$wpdb->options}
+			WHERE option_name LIKE '_transient_fabrica-reusable-block-instances_block-%'
+		");
+
+		# delete the transients
+		$prefixLength = strlen('_transient_');
+		foreach ($transients as $transient) {
+			delete_transient(substr($transient, $prefixLength));
+		}
+	}
+
 	public static function makePublic($type, $args) {
 		if ($type != 'wp_block') { return; }
 		$args->show_in_menu = true;

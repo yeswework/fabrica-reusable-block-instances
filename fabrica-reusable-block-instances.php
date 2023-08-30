@@ -16,3 +16,4 @@ namespace Fabrica\ReusableBlockInstances;
 if (!defined('WPINC')) { die(); }
 
 require_once('inc/base.php');
+register_deactivation_hook(__FILE__, [Base::class, 'handlePluginDeactivation']);
