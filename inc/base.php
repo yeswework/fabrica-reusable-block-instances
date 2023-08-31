@@ -157,12 +157,10 @@ class Base {
 		$instances = get_transient(self::getInstancesRef($id)); ?>
 
 		<span class="<?= self::NS ?>-instances <?= empty($instances) && $instances !== "0" ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?php
-			if ($instances === "0") {
-				echo '—';
-			} else if (empty($instances)) { ?>
-				<span class="dashicons-before dashicons-clock"></span><?php
-			} else { ?>
+			if (is_numeric($instances)) { ?>
 				<a href="<?= admin_url('edit.php?post_type=wp_block&block_instances=' . $id) ?>"><?= $instances ?></a><?php
+			} else { ?>
+				<span class="dashicons-before dashicons-clock"></span><?php
 			} ?>
 		</span><?php
 	}
@@ -174,10 +172,8 @@ class Base {
 
 		// Fetch public post types and filter them through user's whitelist
 		$postTypes = array_filter(
-			get_post_types(['public' => true]),
-			function($postType) {
-				return $postType != 'attachment' && apply_filters('fbi_post_types_whitelist', $postType);
-			}
+			get_post_types(),
+			fn($postType) => use_block_editor_for_post_type($postType) && apply_filters('fbi_post_types_whitelist', $postType)
 		);
 		return array_keys($postTypes);
 	}

@@ -43,10 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		fetch(`${app.url.ajax}?action=${app.ns}_get_block_instances`, {method: 'POST', credentials: 'include', body})
 		.then(response => response.json())
 		.then(result => {
-			if (result.success && result.data.instances > 0) {
+			if (result.success && result.data.instances >= 0) {
 				$cell.innerHTML = `<a href="${app.url.edit}?post_type=wp_block&block_instances=${blockId}">${result.data.instances}</a>`;
-			} else if (result.success) {
-				$cell.innerText = '—';
 			} else {
 				handleError($cell, attempt);
 			}
