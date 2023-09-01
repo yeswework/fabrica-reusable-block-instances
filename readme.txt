@@ -41,6 +41,14 @@ That's all. No configuration required.
 
 == Changelog ==
 
+= 1.0.6 =
+* Load results asynchronously to avoid timeouts
+* Cache results for better performance
+* Include results for all post types that support blocks
+
+= 1.0.5 =
+* Minor bugfixes and improvements
+
 = 1.0.4 =
 * Further query performance optimizations
 * Filter by post type
