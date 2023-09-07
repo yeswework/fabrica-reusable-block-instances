@@ -21,6 +21,7 @@ class Base {
 	public static function init() {
 		add_action('post_updated', [__CLASS__, 'handlePostUpdate'], 10, 3);
 		if (!is_admin()) { return; }
+		add_filter('gettext_' . self::NS, [__CLASS__, 'translateText']);
 		add_action('registered_post_type', [__CLASS__, 'makePublic'], 10, 2);
 		add_action('admin_enqueue_scripts', [__CLASS__, 'enqueueAssets']);
 		add_action('restrict_manage_posts', [__CLASS__, 'addPostTypesFilter']);
@@ -53,12 +54,22 @@ class Base {
 		}
 	}
 
+	public static function translateText($text) {
+		if (version_compare(get_bloginfo('version'), '6.3', '>=')) { return $text; }
+		if ($text == 'Synced Patterns') {
+			return 'Reusable Blocks';
+		} else if ($text == 'Instances of Synced Pattern') {
+			return 'Instances of Reusable Block';
+		}
+		return $text;
+	}
+
 	public static function makePublic($type, $args) {
 		if ($type != 'wp_block') { return; }
 		$args->show_in_menu = true;
 		$args->_builtin = false;
-		$args->labels->name = __('Reusable Blocks', self::NS);
-		$args->labels->menu_name = __('Reusable Blocks', self::NS);
+		$args->labels->name = __('Synced Patterns', self::NS);
+		$args->labels->menu_name = __('Synced Patterns', self::NS);
 		$args->menu_icon = 'dashicons-screenoptions';
 		$args->menu_position = 58;
 	}
@@ -78,7 +89,7 @@ class Base {
 		$url = plugins_url($base, __DIR__);
 		if (!file_exists($path)) { return; }
 		wp_enqueue_script(Base::NS . '-script', $url , [], filemtime($path), true);
-		wp_localize_script(Base::NS . '-script', 'app', [
+		wp_localize_script(Base::NS . '-script', 'fabricaReusableBlockInstances', [
 			'ns' => Base::NS,
 			'url' => [
 				'ajax' => admin_url('admin-ajax.php'),
@@ -114,8 +125,8 @@ class Base {
 	}
 
 	public static function modifyPageTitle($safeText, $text) {
-		if ($safeText !== __('Reusable Blocks', self::NS)) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
-		return __('Instances of Reusable Block', self::NS) . ' ‘' . get_the_title($_GET['block_instances']) . '’';
+		if ($safeText !== __('Synced Patterns', self::NS)) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
+		return __('Instances of Synced Pattern', self::NS) . ' ‘' . get_the_title($_GET['block_instances']) . '’';
 	}
 
 	public static function removeQuickLinks($views) {
@@ -193,7 +204,7 @@ class Base {
 		$newIds = array_unique($newIds[1] ?? []);
 		$changedIds = array_merge(array_diff($oldIds, $newIds), array_diff($newIds, $oldIds));
 
-		// delete cached results for every reusable block that is new or has been completely removed from the post
+		// delete cached results for every synced pattern that is new or has been completely removed from the post
 		foreach ($changedIds as $id) {
 			delete_transient(self::getInstancesRef($id));
 		}
@@ -207,7 +218,7 @@ class Base {
 			wp_send_json_error(['message' => 'missing block id'], 500);
 		}
 
-		// check if instances for this reusable block are cached
+		// check if instances for this synced pattern are cached
 		$id = $_POST['block_id'];
 		$transientRef = self::getInstancesRef($id);
 		$instances = get_transient($transientRef);
@@ -215,7 +226,7 @@ class Base {
 			wp_send_json_success(['instances' => $instances]);
 		}
 
-		// not cached: get number of reusable block instances from DB
+		// not cached: get number of synced pattern instances from DB
 		global $wpdb;
 		$query = $wpdb->prepare("SELECT COUNT(*) AS instances
 			FROM {$wpdb->posts}

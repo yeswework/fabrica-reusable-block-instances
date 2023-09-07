@@ -1,4 +1,4 @@
-=== Fabrica Reusable Block Instances ===
+=== Fabrica Synced Pattern Instances ===
 Contributors: yeswework
 Donate link: https://fabri.ca/donate/
 Tags: blocks, block, reusable, gutenberg, blockeditor, content
@@ -9,16 +9,16 @@ Requires PHP: 5.6
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
-Shows you how many times, and where, a Reusable Block has been used.
+Shows you how many times, and where, a Synced Pattern has been used.
 
 == Description ==
 
-Provides some vital functionality missing from WP 5.X Core for users of Reusable Blocks:
+Provides some vital functionality missing from WP 5.X Core for users of Synced Patterns:
 
-* Shows how many times each Reusable Block has been used throughout the whole site
+* Shows how many times each Synced Pattern has been used throughout the whole site
 * This count links to a list of all the content which uses the block (Posts, Pages and Custom Post Types)
 
-If you are making changes to Reusable Blocks and need to keep an eye on where those changes will be seen, this plugin is for you.
+If you are making changes to Synced Patterns and need to keep an eye on where those changes will be seen, this plugin is for you.
 
 This is a super-lightweight plugin, with under 100 lines of code, no settings, and it does not modify your database in any way.
 
@@ -35,8 +35,8 @@ That's all. No configuration required.
 
 == Screenshots ==
 
-1. Reusable Blocks promoted to the main menu
-1. List of all Reusable Blocks showing number of instances
+1. Synced Patterns promoted to the main menu
+1. List of all Synced Patterns showing number of instances
 1. List of content which uses a particular block
 
 == Changelog ==

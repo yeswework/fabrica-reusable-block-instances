@@ -1,6 +1,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
-	const $waitingCells = document.querySelectorAll(`.${app.ns}-instances--waiting`);
+	const app = fabricaReusableBlockInstances,
+		$waitingCells = document.querySelectorAll(`.${app.ns}-instances--waiting`);
 	if (!$waitingCells || !$waitingCells.length) { return; }
 
 
