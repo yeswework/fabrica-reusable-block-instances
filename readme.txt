@@ -20,8 +20,6 @@ Provides some vital functionality missing from WP 5.X Core for users of Synced P
 
 If you are making changes to Synced Patterns and need to keep an eye on where those changes will be seen, this plugin is for you.
 
-This is a super-lightweight plugin, with under 100 lines of code, no settings, and it does not modify your database in any way.
-
 Designed to work seamlessly with Fabrica Dashboard: https://wordpress.org/plugins/fabrica-dashboard/
 
 == Installation ==
