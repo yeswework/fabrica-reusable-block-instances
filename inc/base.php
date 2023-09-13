@@ -40,23 +40,28 @@ class Base {
 	}
 
 	public static function handlePluginDeactivation() {
-		# get all plugin's block instances transients
+		// get all plugin's block instances transients
 		global $wpdb;
 		$transients = $wpdb->get_col("SELECT option_name
 			FROM {$wpdb->options}
 			WHERE option_name LIKE '_transient_fabrica-reusable-block-instances_block-%'
 		");
 
-		# delete the transients
+		// delete the transients
 		$prefixLength = strlen('_transient_');
 		foreach ($transients as $transient) {
 			delete_transient(substr($transient, $prefixLength));
 		}
 	}
 
+	// `true` if current WP version support [un]synced patterns, `false` if it uses reusable blocks instead
+	private static function supportsPattern() {
+		return version_compare(get_bloginfo('version'), '6.3', '>=');
+	}
+
 	public static function translateText($text) {
-		if (version_compare(get_bloginfo('version'), '6.3', '>=')) { return $text; }
-		if ($text == 'Synced Patterns') {
+		if (self::supportsPattern()) { return $text; }
+		if ($text == 'Synced Patterns' || $text == 'Patterns') {
 			return 'Reusable Blocks';
 		} else if ($text == 'Instances of Synced Pattern') {
 			return 'Instances of Reusable Block';
@@ -68,10 +73,13 @@ class Base {
 		if ($type != 'wp_block') { return; }
 		$args->show_in_menu = true;
 		$args->_builtin = false;
-		$args->labels->name = __('Synced Patterns', self::NS);
-		$args->labels->menu_name = __('Synced Patterns', self::NS);
 		$args->menu_icon = 'dashicons-screenoptions';
 		$args->menu_position = 58;
+		if (self::supportsPattern()) { return; }
+
+		// labels for WP versions previous to Patterns support
+		$args->labels->name = __('Reusable Blocks', self::NS);
+		$args->labels->menu_name = __('Reusable Blocks', self::NS);
 	}
 
 	public static function enqueueAssets() {
@@ -125,7 +133,7 @@ class Base {
 	}
 
 	public static function modifyPageTitle($safeText, $text) {
-		if ($safeText !== __('Synced Patterns', self::NS)) { return $safeText; } // The text detected here is our own modification from line 47, by default it would be 'Blocks'
+		if ($safeText !== __('Synced Patterns', self::NS)) { return $safeText; } // The text detected here is our own modification from `makePublic()`, by default it would be 'Blocks'
 		return __('Instances of Synced Pattern', self::NS) . ' ‘' . get_the_title($_GET['block_instances']) . '’';
 	}
 
@@ -142,11 +150,7 @@ class Base {
 	public static function displayPostTypeColumn($column, $id) {
 		if ($column != 'postType') { return; }
 		$post = get_post($id);
-		if (!empty($post)) {
-			echo $post->post_type;
-			return;
-		}
-		echo '—';
+		echo empty($post) ? '—' : $post->post_type;
 	}
 
 	public static function displayPageColumn($column, $id) {
@@ -168,10 +172,12 @@ class Base {
 		$instances = get_transient(self::getInstancesRef($id)); ?>
 
 		<span class="<?= self::NS ?>-instances <?= empty($instances) && $instances !== "0" ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?php
-			if (is_numeric($instances)) { ?>
+			if ($instances == '—') { ?>
+				<span title="<?= __('Unsynced pattern', self::NS) ?>"><?= $instances ?></span><?php
+			} else if (is_numeric($instances)) { ?>
 				<a href="<?= admin_url('edit.php?post_type=wp_block&block_instances=' . $id) ?>"><?= $instances ?></a><?php
 			} else { ?>
-				<span class="dashicons-before dashicons-clock"></span><?php
+				<span title="Waiting to load" class="dashicons-before dashicons-clock"></span><?php
 			} ?>
 		</span><?php
 	}
@@ -228,15 +234,21 @@ class Base {
 
 		// not cached: get number of synced pattern instances from DB
 		global $wpdb;
-		$query = $wpdb->prepare("SELECT COUNT(*) AS instances
+		$query = $wpdb->prepare("SELECT COUNT(*) AS instances, (
+				SELECT meta_value
+				FROM {$wpdb->postmeta}
+				WHERE post_id = %d
+					AND meta_key = 'wp_pattern_sync_status'
+			) AS sync_status
 			FROM {$wpdb->posts}
 			WHERE INSTR(post_content, '{\"ref\":%d} /-->')
 				AND post_type IN " . self::getPostTypesPlaceholder()
 				. " AND post_status IN ('publish', 'draft', 'future', 'pending')",
-			$id,
+			$id, $id,
 			...self::getPostTypes()
 		);
-		$instances = $wpdb->get_var($query);
+		$row = $wpdb->get_row($query, ARRAY_A);
+		$instances = $row['sync_status'] == 'unsynced' ? '—' : $row['instances'];
 		set_transient($transientRef, $instances, self::CACHE_PERIOD);
 
 		wp_send_json_success(['instances' => $instances]);

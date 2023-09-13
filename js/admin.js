@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (!$waitingCells || !$waitingCells.length) { return; }
 
 
-	const handleError = ($cell, attempt) => {
+	const handleError = ($cell, attempt, error) => {
 		// try 3 times before failing
 		if (attempt < 2) {
 			loadCell($cell, attempt + 1);
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			$retryLink = document.createElement('a');
 
 		$errorWarning.classList.add('dashicons-before', 'dashicons-warning');
+		$errorWarning.setAttribute('title', error ?? 'Error loading instances');
 		$retryLink.innerText = 'retry';
 		$retryLink.classList.add(`${app.ns}-instances__retry-link`)
 		$retryLink.addEventListener('click', () => loadCell($cell));
@@ -39,12 +40,14 @@ document.addEventListener('DOMContentLoaded', () => {
 		body.append('_wpnonce', app.nonce);
 		body.append('block_post_type', postType == 'all' ? '' : postType);
 		body.append('block_id', blockId);
-		$cell.innerHTML = `<span class="${app.ns}-instances__spinner dashicons-before dashicons-update"></span>`;
+		$cell.innerHTML = `<span title="Loading" class="${app.ns}-instances__spinner dashicons-before dashicons-update"></span>`;
 
 		fetch(`${app.url.ajax}?action=${app.ns}_get_block_instances`, {method: 'POST', credentials: 'include', body})
 		.then(response => response.json())
 		.then(result => {
-			if (result.success && result.data.instances >= 0) {
+			if (result.success && result.data.instances == '—') {
+				$cell.innerHTML = `<span title="Unsynced pattern">${result.data.instances}</span>`;
+			} else if (result.success && result.data.instances >= 0) {
 				$cell.innerHTML = `<a href="${app.url.edit}?post_type=wp_block&block_instances=${blockId}">${result.data.instances}</a>`;
 			} else {
 				handleError($cell, attempt);
@@ -53,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			loadNextCell();
 		}).catch(reason => {
 			console.log('~~> error:', {reason}); // ~~
-			handleError($cell, attempt);
+			handleError($cell, attempt, `Error loading instances: ${reason}`);
 		});
 	};
 
