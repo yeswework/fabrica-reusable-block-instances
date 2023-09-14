@@ -173,7 +173,7 @@ class Base {
 
 		<span class="<?= self::NS ?>-instances <?= empty($instances) && $instances !== "0" ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?php
 			if ($instances == '—') { ?>
-				<span title="<?= __('Unsynced pattern', self::NS) ?>"><?= $instances ?></span><?php
+				<span class="<?= self::NS ?>-instances__unsynced"><?= __('not synced', self::NS) ?></span><?php
 			} else if (is_numeric($instances)) { ?>
 				<a href="<?= admin_url('edit.php?post_type=wp_block&block_instances=' . $id) ?>"><?= $instances ?></a><?php
 			} else { ?>

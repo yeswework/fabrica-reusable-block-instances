@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		.then(response => response.json())
 		.then(result => {
 			if (result.success && result.data.instances == '—') {
-				$cell.innerHTML = `<span title="Unsynced pattern">${result.data.instances}</span>`;
+				$cell.innerHTML = `<span class="${app.ns}-instances__unsynced">not synced</span>`;
 			} else if (result.success && result.data.instances >= 0) {
 				$cell.innerHTML = `<a href="${app.url.edit}?post_type=wp_block&block_instances=${blockId}">${result.data.instances}</a>`;
 			} else {
