@@ -2,6 +2,7 @@
 
 namespace Fabrica\ReusableBlockInstances;
 
+use Error;
 use WP_Error;
 
 if (!defined('WPINC')) { die(); }
@@ -58,6 +59,10 @@ class Base {
 	// `true` if current WP version support [un]synced patterns, `false` if it uses reusable blocks instead
 	private static function supportsPattern() {
 		return version_compare(get_bloginfo('version'), '6.3', '>=');
+	}
+
+	private static function hasPostTypeFilter() {
+		return !empty($_REQUEST['block_post_type']) && $_REQUEST['block_post_type'] != 'all';
 	}
 
 	public static function translateText($text) {
@@ -185,7 +190,7 @@ class Base {
 
 	public static function displayInstancesColumn($column, $id) {
 		if ($column != 'instances') { return; }
-		$instances = get_transient(self::getInstancesRef($id)); ?>
+		$instances = self::hasPostTypeFilter() ? false: get_transient(self::getInstancesRef($id)); ?>
 
 		<span class="<?= self::NS ?>-instances <?= empty($instances) && $instances !== "0" ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?php
 			if ($instances == '—') { ?>
@@ -199,7 +204,7 @@ class Base {
 	}
 
 	private static function getPostTypes($all = false) {
-		if (!$all && !empty($_REQUEST['block_post_type'])) {
+		if (!$all && self::hasPostTypeFilter()) {
 			return [$_REQUEST['block_post_type']]; // Post type selected
 		}
 
@@ -242,10 +247,12 @@ class Base {
 
 		// check if instances for this synced pattern are cached
 		$id = $_POST['block_id'];
-		$transientRef = self::getInstancesRef($id);
-		$instances = get_transient($transientRef);
-		if (!empty($instances)) {
-			wp_send_json_success(['instances' => $instances]);
+		if (!self::hasPostTypeFilter()) {
+			$transientRef = self::getInstancesRef($id);
+			$instances = get_transient($transientRef);
+			if (!empty($instances)) {
+				wp_send_json_success(['instances' => $instances]);
+			}
 		}
 
 		// not cached: get number of synced pattern instances from DB
@@ -265,7 +272,9 @@ class Base {
 		);
 		$row = $wpdb->get_row($query, ARRAY_A);
 		$instances = $row['sync_status'] == 'unsynced' ? '—' : $row['instances'];
-		set_transient($transientRef, $instances, self::CACHE_PERIOD);
+		if (!self::hasPostTypeFilter()) {
+			set_transient($transientRef, $instances, self::CACHE_PERIOD);
+		}
 
 		wp_send_json_success(['instances' => $instances]);
 	}
