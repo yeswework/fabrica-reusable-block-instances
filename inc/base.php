@@ -30,6 +30,7 @@ class Base {
 			add_action('pre_get_posts', [__CLASS__, 'modifyListQuery']);
 			add_filter('esc_html', [__CLASS__, 'modifyPageTitle'], 1000, 2);
 			add_filter('views_edit-wp_block', [__CLASS__, 'removeQuickLinks'], 1000, 1);
+			add_filter('user_has_cap', [__CLASS__, 'removeRowQuickLinks'], 1000, 3);
 			add_filter('manage_wp_block_posts_columns', [__CLASS__, 'addPostTypeColumn']);
 			add_action('manage_posts_custom_column' , [__CLASS__, 'displayPostTypeColumn'], 1000, 2);
 			add_action('manage_pages_custom_column' , [__CLASS__, 'displayPageColumn'], 1000, 2);
@@ -127,8 +128,11 @@ class Base {
 
 	public static function modifyPostsWhere($where) {
 		global $wpdb;
-		$where .= $wpdb->prepare(" AND post_type IN " . self::getPostTypesPlaceholder()
-			. " AND INSTR(post_content, '{\"ref\":%d}') ", ...array_merge(self::getPostTypes(), [$_GET['block_instances']]));
+		$where = $wpdb->prepare(" AND post_type IN " . self::getPostTypesPlaceholder()
+			. " AND INSTR(post_content, '{\"ref\":%d} /-->') "
+			. " AND post_status IN ('publish', 'draft', 'future', 'pending', 'private')",
+			...array_merge(self::getPostTypes(), [$_GET['block_instances']])
+		);
 		return $where;
 	}
 
@@ -139,6 +143,18 @@ class Base {
 
 	public static function removeQuickLinks($views) {
 		return '';
+	}
+
+	// remove `delete_post` capability for post types that fail at getting the delete post link
+	public static function removeRowQuickLinks($allcaps, $caps, $args) {
+		if ($args[0] != 'delete_post' || empty($args[2])) { return $allcaps; }
+		$postType = get_post_type($args[2]);
+		if (!in_array($postType, ['wp_template', 'wp_template_part'])) { return $allcaps; }
+
+		foreach ($caps as $cap) {
+			$allcaps[$cap] = false;
+		}
+		return $allcaps;
 	}
 
 	/* 'Post type' column */
@@ -243,7 +259,7 @@ class Base {
 			FROM {$wpdb->posts}
 			WHERE INSTR(post_content, '{\"ref\":%d} /-->')
 				AND post_type IN " . self::getPostTypesPlaceholder()
-				. " AND post_status IN ('publish', 'draft', 'future', 'pending')",
+				. " AND post_status IN ('publish', 'draft', 'future', 'pending', 'private')",
 			$id, $id,
 			...self::getPostTypes()
 		);
