@@ -116,7 +116,11 @@ class Base {
 	public static function addPostTypesFilter($type) {
 		if ($type != 'wp_block') { return; }
 		$filteredPostType = empty($_GET['block_post_type']) ? 'all' : $_GET['block_post_type'];
-		$postTypes = self::getPostTypes(true); ?>
+		$postTypes = self::getPostTypes(true);
+		if (self::hasPostTypeFilter()) {
+			// add `block_instances` to form to keep in block posts list when filtering ?>
+			<input type="hidden" name="block_instances" class="post_type_page" value="<?= $_REQUEST['block_instances'] ?>"><?php
+		} ?>
 		<select name="block_post_type" id="block_post_type">
 			<option value="all" <?php selected('all', $filteredPostType); ?>><?= __('All post types', self::NS); ?></option><?php
 			foreach ($postTypes as $postType) { ?>
@@ -127,7 +131,6 @@ class Base {
 
 	public static function modifyListQuery($query) {
 		if ($query->get('post_type') != 'wp_block') { return; }
-		$query->set('post_type', 'any');
 		add_filter('posts_where', [__CLASS__, 'modifyPostsWhere']);
 	}
 
