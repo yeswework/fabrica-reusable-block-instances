@@ -13,12 +13,11 @@ Shows you how many times, and where, a Synced Pattern has been used.
 
 == Description ==
 
-Provides some vital functionality missing from WP 5.X Core for users of Synced Patterns:
+Adds some basic but vital indexing functionality for Synced Patterns (previously called Reusable Blocks until WP 6.3):
 
-* Shows how many times each Synced Pattern has been used throughout the whole site
-* This count links to a list of all the content which uses the block (Posts, Pages and Custom Post Types)
-
-If you are making changes to Synced Patterns and need to keep an eye on where those changes will be seen, this plugin is for you.
+* Shows Patterns in the WP main menu
+* Adds a column to the Patterns list indicating how many times a Synced Pattern appears throughout the site
+* This count links to a list of all the content (Posts, Pages, and other public Post Types) which includes the block
 
 Designed to work seamlessly with Fabrica Dashboard: https://wordpress.org/plugins/fabrica-dashboard/
 
