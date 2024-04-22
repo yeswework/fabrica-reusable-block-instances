@@ -3,7 +3,7 @@ Contributors: yeswework
 Donate link: https://fabri.ca/donate/
 Tags: blocks, block, reusable, gutenberg, blockeditor, content
 Requires at least: 5.0
-Tested up to: 6.3
+Tested up to: 6.5
 Stable tag: 1.0.7
 Requires PHP: 5.6
 License: GPL-2.0+
