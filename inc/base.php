@@ -178,6 +178,7 @@ class Base {
 	}
 
 	public static function displayPageColumn($column, $id) {
+		if ($column != 'postType') { return; }
 		echo 'page';
 	}
 
