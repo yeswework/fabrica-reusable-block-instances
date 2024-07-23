@@ -38,6 +38,9 @@ That's all. No configuration required.
 
 == Changelog ==
 
+= 1.0.8 =
+* Fixed incorrect content in custom columns
+
 = 1.0.7 =
 * Support renamed Synced Patterns in WP 6.3
 * Distinguish synced and unsynced patterns
