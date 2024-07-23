@@ -2,9 +2,6 @@
 
 namespace Fabrica\ReusableBlockInstances;
 
-use Error;
-use WP_Error;
-
 if (!defined('WPINC')) { die(); }
 
 class Base {
