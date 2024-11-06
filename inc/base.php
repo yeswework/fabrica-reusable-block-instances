@@ -24,7 +24,7 @@ class Base {
 		add_action('admin_enqueue_scripts', [__CLASS__, 'enqueueAssets']);
 		add_action('restrict_manage_posts', [__CLASS__, 'addPostTypesFilter']);
 		add_action('wp_ajax_' . self::NS . '_get_block_instances', [__CLASS__, 'getBlockInstance']);
-		if (isset($_GET, $_GET['block_instances']) && is_numeric($_GET['block_instances'])) {
+		if (self::hasBlockInstance()) {
 			add_action('pre_get_posts', [__CLASS__, 'modifyListQuery']);
 			add_filter('esc_html', [__CLASS__, 'modifyPageTitle'], 1000, 2);
 			add_filter('views_edit-wp_block', [__CLASS__, 'removeQuickLinks'], 1000, 1);
@@ -56,6 +56,10 @@ class Base {
 	// `true` if current WP version support [un]synced patterns, `false` if it uses reusable blocks instead
 	private static function supportsPattern() {
 		return version_compare(get_bloginfo('version'), '6.3', '>=');
+	}
+
+	private static function hasBlockInstance() {
+		return !empty($_GET['block_instances']) && is_numeric($_GET['block_instances']);
 	}
 
 	private static function hasPostTypeFilter() {
@@ -114,12 +118,12 @@ class Base {
 		if ($type != 'wp_block') { return; }
 		$filteredPostType = empty($_GET['block_post_type']) ? 'all' : $_GET['block_post_type'];
 		$postTypes = self::getPostTypes(true);
-		if (self::hasPostTypeFilter()) {
+		if (self::hasBlockInstance()) {
 			// add `block_instances` to form to keep in block posts list when filtering ?>
-			<input type="hidden" name="block_instances" class="post_type_page" value="<?= $_REQUEST['block_instances'] ?>"><?php
+			<input type="hidden" name="block_instances" class="post_type_page" value="<?= esc_attr($_GET['block_instances']) ?>"><?php
 		} ?>
 		<select name="block_post_type" id="block_post_type">
-			<option value="all" <?php selected('all', $filteredPostType); ?>><?= __('All post types', self::NS); ?></option><?php
+			<option value="all" <?php selected('all', $filteredPostType); ?>><?= esc_html(__('All post types', self::NS)); ?></option><?php
 			foreach ($postTypes as $postType) { ?>
 				<option value="<?= esc_attr($postType); ?>" <?php selected($postType, $filteredPostType); ?>><?= esc_attr(get_post_type_object($postType)->labels->name); ?></option><?php
 			} ?>
@@ -142,8 +146,8 @@ class Base {
 	}
 
 	public static function modifyPageTitle($safeText, $text) {
-		if ($safeText !== __('Synced Patterns', self::NS)) { return $safeText; } // The text detected here is our own modification from `makePublic()`, by default it would be 'Blocks'
-		return __('Instances of Synced Pattern', self::NS) . ' ‘' . get_the_title($_GET['block_instances']) . '’';
+		if ($safeText !== __('Patterns', self::NS)) { return $safeText; } // The text detected here is our own modification from `makePublic()`, by default it would be 'Blocks'
+		return __('Instances of pattern', self::NS) . ' ‘' . esc_html(get_the_title($_GET['block_instances'])) . '’';
 	}
 
 	public static function removeQuickLinks($views) {
@@ -171,7 +175,7 @@ class Base {
 	public static function displayPostTypeColumn($column, $id) {
 		if ($column != 'postType') { return; }
 		$post = get_post($id);
-		echo empty($post) ? '—' : $post->post_type;
+		echo empty($post) ? '—' : esc_html($post->post_type);
 	}
 
 	public static function displayPageColumn($column, $id) {
@@ -193,11 +197,11 @@ class Base {
 		if ($column != 'instances') { return; }
 		$instances = self::hasPostTypeFilter() ? false: get_transient(self::getInstancesRef($id)); ?>
 
-		<span class="<?= self::NS ?>-instances <?= empty($instances) && $instances !== "0" ? self::NS . '-instances--waiting' : '' ?>" data-block-id="<?= $id ?>"><?php
+		<span class="<?= esc_attr(self::NS . '-instances') ?> <?= empty($instances) && $instances !== "0" ? esc_attr(self::NS . '-instances--waiting') : '' ?>" data-block-id="<?= esc_attr($id) ?>"><?php
 			if ($instances == '—') { ?>
-				<span class="<?= self::NS ?>-instances__unsynced"><?= __('not synced', self::NS) ?></span><?php
+				<span class="<?= esc_attr(self::NS . '-instances__unsynced') ?>"><?= esc_attr(__('not synced', self::NS)) ?></span><?php
 			} else if (is_numeric($instances)) { ?>
-				<a href="<?= admin_url('edit.php?post_type=wp_block&block_instances=' . $id) ?>"><?= $instances ?></a><?php
+				<a href="<?= esc_url(admin_url('edit.php?post_type=wp_block&block_instances=' . $id)) ?>"><?= esc_html($instances) ?></a><?php
 			} else { ?>
 				<span title="Waiting to load" class="dashicons-before dashicons-clock"></span><?php
 			} ?>

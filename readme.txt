@@ -3,8 +3,8 @@ Contributors: yeswework
 Donate link: https://fabri.ca/donate/
 Tags: blocks, block, reusable, gutenberg, blockeditor, content
 Requires at least: 5.0
-Tested up to: 6.6
-Stable tag: 1.0.8
+Tested up to: 6.7
+Stable tag: 1.0.9
 Requires PHP: 5.6
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -37,6 +37,10 @@ That's all. No configuration required.
 1. List of content which uses a particular block
 
 == Changelog ==
+
+= 1.0.9 =
+* Security vulnerability fixes
+* Fixed filtering in pattern instances view
 
 = 1.0.8 =
 * Fixed incorrect content in custom columns

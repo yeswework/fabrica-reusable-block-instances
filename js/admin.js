@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		$waitingCells = document.querySelectorAll(`.${app.ns}-instances--waiting`);
 	if (!$waitingCells || !$waitingCells.length) { return; }
 
-
 	const handleError = ($cell, attempt, error) => {
 		// try 3 times before failing
 		if (attempt < 2) {
