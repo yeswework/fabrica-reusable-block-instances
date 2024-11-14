@@ -3,7 +3,7 @@
 Plugin Name: Fabrica Synced Pattern Instances
 Plugin URI: https://github.com/yeswework/fabrica-reusable-block-instances/
 Description: Shows you how many times, and where, a Synced Pattern has been used.
-Version: 1.0.8
+Version: 1.0.9
 Author: Fabrica
 Author URI: https://fabri.ca/
 Text Domain: fabrica-reusable-block-instances
