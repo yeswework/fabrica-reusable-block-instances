@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "fabrica_reusable_block_instances",
+  "project_id": "aaae933d-ecc6-43b4-b188-5305e32b1495"
+}
