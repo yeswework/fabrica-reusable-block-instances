@@ -9,3 +9,9 @@ package-lock.json
 package.json
 postcss.config.js
 webpack.config.js
+.beads/
+.claude/
+CLAUDE.md
+.agents/
+.codex/
+AGENTS.md
