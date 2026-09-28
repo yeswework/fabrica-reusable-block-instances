@@ -16,3 +16,4 @@ CLAUDE.md
 .codex/
 AGENTS.md
 .beads.gate.lock
+.playwright-cli/
