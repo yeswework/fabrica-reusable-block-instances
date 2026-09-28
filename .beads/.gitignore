@@ -3,6 +3,10 @@ dolt/
 embeddeddolt/
 proxieddb/
 
+# bd-init scaffolding (generic boilerplate + per-clone git hooks, not project-specific)
+README.md
+hooks/
+
 # Runtime files
 bd.sock
 bd.sock.startlock
