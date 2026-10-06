@@ -1,6 +1,5 @@
 === Fabrica Synced Pattern Instances ===
 Contributors: yeswework
-Donate link: https://fabri.ca/donate/
 Tags: blocks, block, reusable, gutenberg, blockeditor, content
 Requires at least: 5.0
 Tested up to: 7.1
@@ -20,6 +19,8 @@ Adds some basic but vital indexing functionality for Synced Patterns (previously
 * This count links to a list of all the content (Posts, Pages, and other public Post Types) which includes the block
 
 Designed to work seamlessly with Fabrica Dashboard: https://wordpress.org/plugins/fabrica-dashboard/
+
+More about this plugin, and the other Fabrica plugins for editorial teams: https://fabri.ca/synced-pattern-instances/
 
 == Installation ==
 
